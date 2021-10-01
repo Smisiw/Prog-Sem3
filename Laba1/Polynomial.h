@@ -1,23 +1,15 @@
+
 #include <iostream>
 #include "MyFunctions.hpp"
 
-using namespace std;
-
 class Polynomial {
-
-private:
-	int order;
-	float* coefficient;
-	static int counter;
-	char* str;
 public:
 	//Конструктор по умолчанию
 	Polynomial() {
 		this->order = 0;
 		this->coefficient = new float[1];
 		this->coefficient[0] = 0;
-		toString();
-		counter += 1;
+		count += 1;
 	}
 	//Конструктор с параметрами
 	Polynomial(int order, float* coefficient) {
@@ -26,24 +18,21 @@ public:
 		for (int i = 0; i <= order; i++) {
 			this->coefficient[i] = coefficient[i];
 		}
-		toString();
-		counter += 1;
+		count += 1;
 	}
 	//Конструктор копирования
 	Polynomial(const Polynomial& pol) {
-		this->order = order;
+		this->order = pol.order;
 		this->coefficient = new float[order + 1];
 		for (int i = 0; i <= order; i++) {
 			this->coefficient[i] = coefficient[i];
 		}
-		toString();
-		counter += 1;
+		count += 1;
 	}
 	//Деструктор
 	~Polynomial() {
 		delete this->coefficient;
-		//delete this->str;
-		counter -= 1;
+		count -= 1;
 	}
 
 	float calculate(float x) {
@@ -60,11 +49,11 @@ public:
 
 	void setCoefficient(int order, float x) {
 		//Замена коэффициента до высшего порядка
-		if ((this->order > order) || (this->order == order) && (x != 0)) {
+		if ((this->order > order) && (order > 0) || (this->order == order) && (x != 0)) {
 			this->coefficient[order] = x;
 		}
 		//Добавление нового порядка
-		else if ((this->order < order) && (x != 0)) {
+		else if ((this->order < order) && (order > 0) && (x != 0)) {
 			float* temp = new float[this->order + 1];
 			for (int i = 0; i <= this->order; i++) {
 				temp[i] = this->coefficient[i];
@@ -100,11 +89,9 @@ public:
 			this->order = order;
 			delete temp;
 		}
-		delete this->str;
-		toString();
 	}
 
-	void toString() {
+	char* getString() {
 		//расчет длинны
 		int length = 1;
 		bool isFirst = 1;
@@ -130,12 +117,13 @@ public:
 		//запись в массив символов
 		isFirst = 1;
 		if (length == 1) {
-			this->str = new char[2];
-			this->str[0] = '0';
-			this->str[1] = '\0';
+			char* str = new char[2];
+			str[0] = '0';
+			str[1] = '\0';
+			return str;
 		}
 		else {
-			this->str = new char[length];
+			char* str = new char[length];
 			int len = 0;
 			for (int i = 0; i <= this->order; i++)
 			{
@@ -144,10 +132,10 @@ public:
 					isFirst = 0;
 				}
 				else if (this->coefficient[i] > 0) {
-					this->str[len++] = '+';
+					str[len++] = '+';
 				}
 				else  if (this->coefficient[i] < 0) {
-					this->str[len++] = '-';
+					str[len++] = '-';
 				}
 
 				if (this->coefficient[i] != 0)
@@ -155,7 +143,7 @@ public:
 					//Запись целых чисел
 					if (this->coefficient[i] - (int)this->coefficient[i] == 0 && (abs(this->coefficient[i]) != 1 || i == 0)) {
 						for (int j = getLengthOfInt((int)this->coefficient[i]) - 1; j >= 0; j--) {
-							this->str[len++] = (abs((int)this->coefficient[i]) / (int)pow(10, j)) % (int)pow(10, j + 1) + '0';
+							str[len++] = (abs((int)this->coefficient[i]) / (int)pow(10, j)) % (int)pow(10, j + 1) + '0';
 						}
 					}
 					//Запись вещественных чисел
@@ -164,32 +152,30 @@ public:
 						int reg = snprintf(temp, getLengthOfFloat(this->coefficient[i]), "%f", abs(this->coefficient[i]));
 						for (int j = 0; j < getLengthOfFloat(this->coefficient[i]) - 1; j++)
 						{
-							this->str[len++] = temp[j];
+							str[len++] = temp[j];
 						}
 						delete temp;
 					}
-					//Запись иксов
+					//Запись иксов и их степени
 					if (i > 0) {
-						this->str[len++] = 'x';
+						str[len++] = 'x';
 						if (i > 1) {
-							this->str[len++] = '^';
+							str[len++] = '^';
 							for (int j = getLengthOfInt(i) - 1; j >= 0; j--) {
-								this->str[len++] = i / pow(10, j) + '0';
+								str[len++] = i / pow(10, j) + '0';
 							}
 						}
 					}
 				}
 			}
-			this->str[len] = '\0';
+			str[len++] = '\0';
+			return str;
 		}
-	}
 
-	char* getString() {
-		return this->str;
 	}
 
 	float getCoefficient(int order) {
-		if (order <= this->order) {
+		if (order <= this->order && order >=0) {
 			return this->coefficient[order];
 		}
 		else return 0;
@@ -199,6 +185,14 @@ public:
 		return this->order;
 	}
 
+	static int getCount() {
+		return count;
+	}
+
+private:
+	int order;
+	float* coefficient;
+	static int count;
 };
 
-int Polynomial::counter = 0;
+int Polynomial::count = 0;

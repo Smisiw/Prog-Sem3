@@ -2,7 +2,7 @@
 
 #include <iostream>
 #include "catch.hpp"
-#include "Polynomial.hpp"
+#include "Polynomial.h"
 
 using namespace std;
 
