@@ -13,8 +13,13 @@ public:
 	}
 	//Конструктор с параметрами
 	Polynomial(int order, float* coefficient) {
-		if (order < 0) {
-			throw exception("Order < 0");
+		try {
+			if (order < 0) {
+				throw exception("Order < 0");
+			}
+		}
+		catch(const exception ex) {
+			cerr << ex.what() << endl;
 		}
 		this->order = order;
 		this->coefficient = new float[order + 1];
@@ -51,8 +56,13 @@ public:
 	}
 
 	void setCoefficient(int order, float x) {
-		if (order < 0) {
-			throw exception("Order < 0");
+		try {
+			if (order < 0) {
+				throw exception("Order < 0");
+			}
+		}
+		catch (const exception ex) {
+			cerr << ex.what() << endl;
 		}
 		//Замена коэффициента до высшего порядка
 		if ((this->order > order) && (order > 0) || (this->order == order) && (x != 0)) {
@@ -287,8 +297,13 @@ public:
 	}
 
 	float& operator [] (unsigned i) {
-		if (i > this->order) {
-			throw exception("Out of array");
+		try {
+			if (i > this->order) {
+				throw exception("Out of array");
+			}
+		}
+		catch (const exception ex) {
+			cerr << ex.what() << endl;
 		}
 		return this->coefficient[i];
 	}

@@ -8,7 +8,7 @@ using namespace std;
 
 
 //Тесты к первой лабе
-TEST_CASE("Testing getOrder() and setCoefficient") {
+TEST_CASE("Testing getOrder() and setCoefficient()") {
 	float n[4] = { -4, 3, -13, 53 };
 	Polynomial pol(3, n);
 	REQUIRE(pol.getOrder() == 3);
@@ -18,7 +18,7 @@ TEST_CASE("Testing getOrder() and setCoefficient") {
 	REQUIRE(pol.getOrder() == 4);
 }
 
-TEST_CASE("Testing getCoefficient() and setCoefficient") {
+TEST_CASE("Testing getCoefficient() and setCoefficient()") {
 	float n[4] = { -17, 0, 15.5, 3 };
 	Polynomial pol(3, n);
 	REQUIRE(pol.getCoefficient(0) == -17);
@@ -163,13 +163,13 @@ TEST_CASE("Testing []") {
 }
 
 //Тесты к шестой лабе
-TEST_CASE("Testing Exceptiions") {
-	float n[3] = { 1,2,3 };
-	Polynomial pol(2, n);
-	REQUIRE_THROWS_AS(pol.setCoefficient(-5, 5), exception);
-	REQUIRE_THROWS_AS(Polynomial (-5, n), exception);
-	REQUIRE_THROWS_AS(pol[3], exception);
-	REQUIRE_THROWS_WITH(pol.setCoefficient(-5, 5), "Order < 0");
-	REQUIRE_THROWS_WITH(Polynomial (-5, n), "Order < 0");
-	REQUIRE_THROWS_WITH(pol[3], "Out of array");
-}
+//TEST_CASE("Testing Exceptiions") {
+//	float n[3] = { 1,2,3 };
+//	Polynomial pol(2, n);
+//	REQUIRE_THROWS_AS(pol.setCoefficient(-5, 5), exception);
+//	REQUIRE_THROWS_AS(Polynomial (-5, n), exception);
+//	REQUIRE_THROWS_AS(pol[3], exception);
+//	REQUIRE_THROWS_WITH(pol.setCoefficient(-5, 5), "Order < 0");
+//	REQUIRE_THROWS_WITH(Polynomial (-5, n), "Order < 0");
+//	REQUIRE_THROWS_WITH(pol[3], "Out of array");
+//}
