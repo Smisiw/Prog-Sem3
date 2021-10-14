@@ -13,6 +13,9 @@ public:
 	}
 	//Конструктор с параметрами
 	Polynomial(int order, float* coefficient) {
+		if (order < 0) {
+			throw exception("Order < 0");
+		}
 		this->order = order;
 		this->coefficient = new float[order + 1];
 		for (int i = 0; i <= order; i++) {
@@ -25,7 +28,7 @@ public:
 		this->order = pol.order;
 		this->coefficient = new float[order + 1];
 		for (int i = 0; i <= order; i++) {
-			this->coefficient[i] = coefficient[i];
+			this->coefficient[i] = pol.coefficient[i];
 		}
 		count += 1;
 	}
@@ -48,6 +51,9 @@ public:
 	}
 
 	void setCoefficient(int order, float x) {
+		if (order < 0) {
+			throw exception("Order < 0");
+		}
 		//Замена коэффициента до высшего порядка
 		if ((this->order > order) && (order > 0) || (this->order == order) && (x != 0)) {
 			this->coefficient[order] = x;
@@ -187,6 +193,114 @@ public:
 
 	static int getCount() {
 		return count;
+	}
+
+	const Polynomial& operator ++ () {
+		float* temp = new float[this->order + 1];
+		for (int i = 0; i <= this->order; i++) {
+			temp[i] = this->coefficient[i];
+		}
+		this->order++;
+		delete this->coefficient;
+		this->coefficient = new float[this->order + 1];
+		this->coefficient[0] = 0;
+		for (int i = 1; i <= this->order; i++) {
+			this->coefficient[i] = temp[i - 1];
+		}
+		return *this;
+	}
+
+	const Polynomial& operator -- () {
+		float* temp = new float[this->order + 1];
+		for (int i = 0; i <= this->order; i++) {
+			temp[i] = this->coefficient[i];
+		}
+		this->order--;
+		delete this->coefficient;
+		this->coefficient = new float[this->order + 1];
+		for (int i = 0; i <= this->order; i++) {
+			this->coefficient[i] = temp[i + 1];
+		}
+		return *this;
+	}
+
+	friend const Polynomial& operator + (Polynomial &pol1, Polynomial &pol2) {
+		if (pol1.order >= pol2.order) {
+			return addition(pol1, pol2);
+		}
+		else {
+			return addition(pol2, pol1);
+		}
+	}
+
+	friend const Polynomial& addition(Polynomial &pol1, Polynomial &pol2) {
+		float* coef = new float[pol1.order];
+		for (int i = 0; i <= pol1.order; i++)
+		{
+			coef[i] = pol1.coefficient[i];
+			if (i <= pol2.order) {
+				coef[i] += pol2.coefficient[i];
+			}
+		}
+		Polynomial* result = new Polynomial(pol1.order, coef);
+		if (coef[pol1.order] == 0) {
+			result->setCoefficient(pol1.order, 0); //Костыль для удаления лишних нулей
+		}
+		return *result;
+	}
+
+	friend const Polynomial& operator - (Polynomial& pol1, Polynomial& pol2) {
+		if (pol1.order >= pol2.order) {
+			return subtraction(pol1, pol2, false);
+		}
+		else {
+			return subtraction(pol2, pol1, true);
+		}
+	}
+
+	friend const Polynomial& subtraction(Polynomial& pol1, Polynomial& pol2, bool isSwapped) {
+		float* coef = new float[pol1.order];
+		for (int i = 0; i <= pol1.order; i++)
+		{
+			if (isSwapped) {
+				coef[i] = -pol1.coefficient[i];
+			}
+			else {
+				coef[i] = pol1.coefficient[i];
+			}
+			if (i <= pol2.order && isSwapped) {
+				coef[i] += pol2.coefficient[i];
+			}
+			else if (i <= pol2.order && !isSwapped) {
+				coef[i] -= pol2.coefficient[i];
+			}
+		}
+		Polynomial* result = new Polynomial(pol1.order, coef);
+		if (coef[pol1.order] == 0) {
+			result->setCoefficient(pol1.order, 0);
+		}
+		return *result;
+	}
+
+	float operator () (float x) {
+		return this->calculate(x);
+	}
+
+	float& operator [] (unsigned i) {
+		if (i > this->order) {
+			throw exception("Out of array");
+		}
+		return this->coefficient[i];
+	}
+
+	const Polynomial& operator = (const Polynomial &pol) {
+		delete this->coefficient;
+		this->order = pol.order;
+		this->coefficient = new float[this->order + 1];
+		for (int i = 0; i <= order; i++) {
+			this->coefficient[i] = pol.coefficient[i];
+		}
+		return *this;
 	}
 
 private:
