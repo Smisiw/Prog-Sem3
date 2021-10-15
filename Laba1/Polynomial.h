@@ -245,6 +245,7 @@ public:
 
 	friend const Polynomial& addition(Polynomial &pol1, Polynomial &pol2) {
 		float* coef = new float[pol1.order];
+		int order = pol1.order;
 		for (int i = 0; i <= pol1.order; i++)
 		{
 			coef[i] = pol1.coefficient[i];
@@ -252,10 +253,19 @@ public:
 				coef[i] += pol2.coefficient[i];
 			}
 		}
-		Polynomial* result = new Polynomial(pol1.order, coef);
 		if (coef[pol1.order] == 0) {
-			result->setCoefficient(pol1.order, 0); //Костыль для удаления лишних нулей
+			for (order--; (coef[order] == 0) && (order > 0); order--);
+			float* temp = new float[order + 1];
+			for (int i = 0; i <= order; i++) {
+				temp[i] = coef[i];
+			}
+			delete coef;
+			Polynomial* result = new Polynomial(order, temp);
+			delete temp;
+			return *result;
 		}
+		Polynomial* result = new Polynomial(order, coef);
+		delete coef;
 		return *result;
 	}
 
@@ -270,6 +280,7 @@ public:
 
 	friend const Polynomial& subtraction(Polynomial& pol1, Polynomial& pol2, bool isSwapped) {
 		float* coef = new float[pol1.order];
+		int order = pol1.order;
 		for (int i = 0; i <= pol1.order; i++)
 		{
 			if (isSwapped) {
@@ -285,10 +296,19 @@ public:
 				coef[i] -= pol2.coefficient[i];
 			}
 		}
-		Polynomial* result = new Polynomial(pol1.order, coef);
 		if (coef[pol1.order] == 0) {
-			result->setCoefficient(pol1.order, 0);
+			for (order--; (coef[order] == 0) && (order > 0); order--);
+			float* temp = new float[order + 1];
+			for (int i = 0; i <= order; i++) {
+				temp[i] = coef[i];
+			}
+			delete coef;
+			Polynomial* result = new Polynomial(order, temp);
+			delete temp;
+			return *result;
 		}
+		Polynomial* result = new Polynomial(order, coef);
+		delete coef;
 		return *result;
 	}
 
