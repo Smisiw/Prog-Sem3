@@ -1,5 +1,7 @@
-
+#define _CRT_SECURE_NO_WARNINGS
+#pragma once
 #include <iostream>
+#include <fstream>
 #include "MyFunctions.hpp"
 
 class Polynomial {
@@ -20,6 +22,7 @@ public:
 		}
 		catch(const exception ex) {
 			cerr << ex.what() << endl;
+			exit(1);
 		}
 		this->order = order;
 		this->coefficient = new float[order + 1];
@@ -31,8 +34,8 @@ public:
 	//Конструктор копирования
 	Polynomial(const Polynomial& pol) {
 		this->order = pol.order;
-		this->coefficient = new float[order + 1];
-		for (int i = 0; i <= order; i++) {
+		this->coefficient = new float[this->order + 1];
+		for (int i = 0; i <= this->order; i++) {
 			this->coefficient[i] = pol.coefficient[i];
 		}
 		count += 1;
@@ -63,9 +66,10 @@ public:
 		}
 		catch (const exception ex) {
 			cerr << ex.what() << endl;
+			exit(1);
 		}
 		//Замена коэффициента до высшего порядка
-		if ((this->order > order) && (order > 0) || (this->order == order) && (x != 0)) {
+		if ((this->order > order) && (order >= 0) || (this->order == order) && (x != 0)) {
 			this->coefficient[order] = x;
 		}
 		//Добавление нового порядка
@@ -150,7 +154,11 @@ public:
 				else if (this->coefficient[i] > 0) {
 					str[len++] = '+';
 				}
-				else  if (this->coefficient[i] < 0) {
+				else  if (this->coefficient[i] < 0 && isFirst) {
+					str[len++] = '-';
+					isFirst = 0;
+				}
+				else if (this->coefficient[i] < 0) {
 					str[len++] = '-';
 				}
 
@@ -221,6 +229,15 @@ public:
 	}
 
 	const Polynomial& operator -- () {
+		try {
+			if (this->order == 0) {
+				throw exception("Order = 0");
+			}
+		}
+		catch (const exception ex) {
+			cerr << ex.what() << endl;
+			return *this;
+		}
 		float* temp = new float[this->order + 1];
 		for (int i = 0; i <= this->order; i++) {
 			temp[i] = this->coefficient[i];
@@ -236,14 +253,14 @@ public:
 
 	friend const Polynomial& operator + (Polynomial &pol1, Polynomial &pol2) {
 		if (pol1.order >= pol2.order) {
-			return addition(pol1, pol2);
+			return add(pol1, pol2);
 		}
 		else {
-			return addition(pol2, pol1);
+			return add(pol2, pol1);
 		}
 	}
 
-	friend const Polynomial& addition(Polynomial &pol1, Polynomial &pol2) {
+	friend const Polynomial& add(Polynomial &pol1, Polynomial &pol2) {
 		float* coef = new float[pol1.order];
 		int order = pol1.order;
 		for (int i = 0; i <= pol1.order; i++)
@@ -259,26 +276,23 @@ public:
 			for (int i = 0; i <= order; i++) {
 				temp[i] = coef[i];
 			}
-			delete coef;
 			Polynomial* result = new Polynomial(order, temp);
-			delete temp;
 			return *result;
 		}
 		Polynomial* result = new Polynomial(order, coef);
-		delete coef;
 		return *result;
 	}
 
 	friend const Polynomial& operator - (Polynomial& pol1, Polynomial& pol2) {
 		if (pol1.order >= pol2.order) {
-			return subtraction(pol1, pol2, false);
+			return subtract(pol1, pol2, false);
 		}
 		else {
-			return subtraction(pol2, pol1, true);
+			return subtract(pol2, pol1, true);
 		}
 	}
 
-	friend const Polynomial& subtraction(Polynomial& pol1, Polynomial& pol2, bool isSwapped) {
+	friend const Polynomial& subtract(Polynomial& pol1, Polynomial& pol2, bool isSwapped) {
 		float* coef = new float[pol1.order];
 		int order = pol1.order;
 		for (int i = 0; i <= pol1.order; i++)
@@ -302,13 +316,10 @@ public:
 			for (int i = 0; i <= order; i++) {
 				temp[i] = coef[i];
 			}
-			delete coef;
 			Polynomial* result = new Polynomial(order, temp);
-			delete temp;
 			return *result;
 		}
 		Polynomial* result = new Polynomial(order, coef);
-		delete coef;
 		return *result;
 	}
 
@@ -324,6 +335,7 @@ public:
 		}
 		catch (const exception ex) {
 			cerr << ex.what() << endl;
+			exit(1);
 		}
 		return this->coefficient[i];
 	}
@@ -336,6 +348,190 @@ public:
 			this->coefficient[i] = pol.coefficient[i];
 		}
 		return *this;
+	}
+
+	ofstream& writeToBin(ofstream& fout, Polynomial& pol) {
+		try {
+			if (!fout.is_open()) {
+				throw exception("Unable to open this file.");
+			}
+		}
+		catch(const exception ex) {
+			cerr << ex.what() << endl;
+			exit(1);
+		}
+		fout.write((char*)&pol.order, sizeof(int));
+		for (int i = 0; i <= pol.order; i++) {
+			fout.write((char*)&pol.coefficient[i], sizeof(float));
+		}
+		return fout;
+	}
+
+	ifstream& readFromBin(ifstream& fin, Polynomial& pol) {
+		try {
+			if (!fin.is_open()) {
+				throw exception("Unable to open this file.");
+			}
+		}
+		catch(const exception ex) {
+			cerr << ex.what() << endl;
+			exit(1);
+		}
+		float coef = 0;
+		int order;
+		fin.read((char*)&order, sizeof(int));
+		for (int i = 0; i <= order; i++) {
+			fin.read((char*)&coef, sizeof(float));
+			pol.setCoefficient(i, coef);
+		}
+		return fin;
+	}
+
+	friend ostream& operator << (ostream& os, Polynomial& pol) {
+		os << pol.getString() << endl;
+		return os;
+	}
+
+	friend istream& operator >> (istream& is, Polynomial& pol) {
+		int order, left = 0, right = 0;
+		float coef;
+		char str[100];
+		is >> str;
+		if (str[0] == '-') {
+			left = 1;
+			right = 1;
+		}
+		do {
+			right++;
+			if (str[right] == '+' || str[right] == '-' || str[right] == '\0') {
+				int i = left;
+				while (str[i] != 'x' && i != right)
+					i++;
+				if (str[i] == 'x') {
+					if (i == left) {
+						coef = 1;
+					}
+					else {
+						char tempstr[15];
+						char* ptr = str;
+						ptr += left;
+						strncpy_s(tempstr, ptr, i - left);
+						coef = atof(tempstr);
+					}
+					if (right - i == 1) {
+						order = 1;
+					}
+					else {
+						i += 2;
+						char tempstr[15];
+						char* ptr = str;
+						ptr += i;
+						strncpy_s(tempstr, ptr, right - i);
+						order = atoi(tempstr);
+					}
+				}
+				else if (i == right) {
+					order = 0;
+					char tempstr[15];
+					char* ptr = str;
+					ptr += left;
+					strncpy_s(tempstr, ptr, right - left);
+					coef = atof(tempstr);
+				}
+				if (left != 0 && str[left - 1] == '-') {
+					coef *= -1;
+				}
+				pol.setCoefficient(order, coef);
+				left = right + 1;
+			}
+		} while (str[right] != '\0' && right != 99);
+		return is;
+	}
+
+	friend bool operator < (const Polynomial& pol1, const Polynomial& pol2) {
+		if (pol1.order < pol2.order) {
+			return true;
+		}
+		else if (pol1.order > pol2.order) {
+			return false;
+		}
+		else {
+			for (int i = pol1.order; i >= 0; i--) {
+				if (pol1.coefficient[i] < pol2.coefficient[i]) {
+					return true;
+				}
+				else if (pol1.coefficient[i] > pol2.coefficient[i]) {
+					return false;
+				}
+			}
+			return false;
+		}
+	}
+
+	friend bool operator > (const Polynomial& pol1, const Polynomial& pol2) {
+		if (pol1.order > pol2.order) {
+			return true;
+		}
+		else if (pol1.order < pol2.order) {
+			return false;
+		}
+		else {
+			for (int i = pol1.order; i >= 0; i--) {
+				if (pol1.coefficient[i] > pol2.coefficient[i]) {
+					return true;
+				}
+				else if (pol1.coefficient[i] < pol2.coefficient[i]) {
+					return false;
+				}
+			}
+			return false;
+		}
+	}
+
+	friend bool operator == (const Polynomial& pol1, const Polynomial& pol2) {
+		if (pol1.order == pol2.order) {
+			bool equal = true;
+			for (int i = 0; i <= pol1.order; i++) {
+				if (pol1.coefficient[i] != pol2.coefficient[i]) {
+					equal = false;
+					break;
+				}
+			}
+			return equal;
+		}
+		else {
+			return false;
+		}
+	}
+
+	virtual char* toString() {
+		char* str = new char[strlen(this->getString()) + 12];
+		sprintf(str, "%s%s", "Polynomial:\n", this->getString());
+		return str;
+	}
+
+	int getSize() {
+		return strlen(this->toString());
+	}
+
+protected:
+	void editCoefficient(int order, float x) {
+		if (order < this->order) {
+			this->coefficient[order] = x;
+		}
+		else {
+			float* temp = new float[this->order + 1];
+			for (int i = 0; i <= this->order; i++) {
+				temp[i] = this->coefficient[i];
+			}
+			delete this->coefficient;
+			this->order++;
+			this->coefficient = new float[this->order + 1];
+			for (int i = 0; i < this->order; i++) {
+				this->coefficient[i] = temp[i];
+			}
+			this->coefficient[this->order] = x;
+		}
 	}
 
 private:
